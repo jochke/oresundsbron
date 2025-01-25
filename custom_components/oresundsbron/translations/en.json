@@ -1,0 +1,17 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "title": "Set up Öresundsbron Integration",
+          "description": "Enter your Öresundsbron credentials to start.",
+          "data": {
+            "username": "Username",
+            "password": "Password"
+          }
+        }
+      },
+      "error": {
+        "auth_failed": "Authentication failed. Please check your credentials."
+      }
+    }
+  }
