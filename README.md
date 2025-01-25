@@ -2,7 +2,7 @@
 
 This integration connects your Home Assistant instance to the Øresundsbron services, enabling real-time monitoring of bridge status, queue times, trip data, and webcam images.
 
-![Öresundsbron Logo](icon.png)
+![Öresundsbron Logo](https://github.com/jochke/oresundsbron/blob/main/oresundsbron-logo.svg)
 
 ## Features
 
