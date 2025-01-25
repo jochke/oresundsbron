@@ -4,7 +4,7 @@ import string
 import requests
 
 class OresundsbronAPI:
-    """Handle communication with the Öresundsbron API."""
+    """Handle communication with the Øresundsbron API."""
 
     def __init__(self):
         self.base_url = "https://www.oresund.io"

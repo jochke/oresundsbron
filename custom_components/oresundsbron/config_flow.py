@@ -12,7 +12,7 @@ data_schema = vol.Schema({
 })
 
 class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Oresundsbron."""
+    """Handle a config flow for Øresundsbron."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
@@ -28,7 +28,7 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.hass.async_add_executor_job(api.authenticate, user_input)
 
                 # If successful, create the entry
-                return self.async_create_entry(title="Oresundsbron", data=user_input)
+                return self.async_create_entry(title="Øresundsbron", data=user_input)
 
             except Exception as e:
                 errors["base"] = "auth_failed"
@@ -46,7 +46,7 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OresundsbronOptionsFlowHandler(config_entry)
 
 class OresundsbronOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options for Oresundsbron."""
+    """Handle options for Øresundsbron."""
 
     def __init__(self, config_entry):
         """Initialize options flow."""

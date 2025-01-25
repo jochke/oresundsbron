@@ -7,7 +7,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up sensors for Öresundsbron from a config entry."""
+    """Set up sensors for Øresundsbron from a config entry."""
     api = OresundsbronAPI()
     api.authenticate(config_entry.data)
 

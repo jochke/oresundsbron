@@ -1,7 +1,7 @@
 {
   "domain": "oresundsbron",
-  "name": "Öresundsbron Integration",
-  "version": "0.1.0",
+  "name": "Øresundsbron",
+  "version": "0.1.1",
   "documentation": "https://github.com/jochke/oresundsbron",
   "dependencies": [],
   "requirements": [],

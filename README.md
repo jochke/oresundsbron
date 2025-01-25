@@ -1,6 +1,8 @@
-# Öresundsbron Integration
+# Øresundsbron
 
-This integration connects your Home Assistant instance to the Öresundsbron services, enabling real-time monitoring of bridge status, queue times, trip data, and webcam images.
+This integration connects your Home Assistant instance to the Øresundsbron services, enabling real-time monitoring of bridge status, queue times, trip data, and webcam images.
+
+![Öresundsbron Logo](icon.png)
 
 ## Features
 
@@ -19,12 +21,12 @@ This integration connects your Home Assistant instance to the Öresundsbron serv
 1. **Add the Integration via HACS**:
    - Open the HACS settings in Home Assistant.
    - Add the repository: `https://github.com/jochke/oresundsbron` as a custom repository.
-   - Install the `Öresundsbron Integration` from the HACS store.
+   - Install the `Øresundsbron Integration` from the HACS store.
 
 2. **Set Up the Integration in Home Assistant**:
    - Navigate to **Settings > Integrations > Add Integration**.
-   - Search for `Öresundsbron` and select it.
-   - Enter your Öresundsbron credentials (username and password).
+   - Search for `Øresundsbron` and select it.
+   - Enter your Øresundsbron credentials (username and password).
 
 ## Sensors
 
@@ -38,7 +40,7 @@ This integration connects your Home Assistant instance to the Öresundsbron serv
 ### Account Information
 
 - **Hidden Sensors**:
-  - **Customer Number**: Displays the Öresundsbron customer number associated with your account.
+  - **Customer Number**: Displays the Øresundsbron customer number associated with your account.
   - **Contracts**: The number of active contracts associated with your account.
 
 ### Trips

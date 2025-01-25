@@ -2,8 +2,8 @@
     "config": {
       "step": {
         "user": {
-          "title": "Set up Öresundsbron Integration",
-          "description": "Enter your Öresundsbron credentials to start.",
+          "title": "Set up Øresundsbron",
+          "description": "Enter your Øresundsbron credentials to start.",
           "data": {
             "username": "Username",
             "password": "Password"
