@@ -1,0 +1,13 @@
+{
+    "name": "Öresundsbron Integration",
+    "description": "Home Assistant integration for the Öresundsbron bridge, including real-time status, queue times, and webcams.",
+    "domain": "oresundsbron",
+    "country": ["DK", "SE"],
+    "homeassistant": "2021.6.0",
+    "codeowners": ["@jochke"],
+    "documentation": "https://github.com/jochke/oresundsbron",
+    "issue_tracker": "https://github.com/jochke/oresundsbron/issues",
+    "version": "0.1.0",
+    "iot_class": "Cloud Polling"
+  }
+  
