@@ -1,8 +1,8 @@
 from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol
-
 from .const import DOMAIN
+from .api import OresundsbronAPI  # Ensure API is imported for validation
 
 class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Öresundsbron."""
@@ -14,8 +14,13 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            # Here we could validate the credentials via the API if needed
-            return self.async_create_entry(title="Öresundsbron", data=user_input)
+            api = OresundsbronAPI()
+            try:
+                # Validate credentials
+                await api.authenticate(user_input)
+                return self.async_create_entry(title="Öresundsbron", data=user_input)
+            except Exception:
+                errors["base"] = "auth_failed"
 
         data_schema = vol.Schema({
             vol.Required("username"): str,
@@ -43,7 +48,7 @@ class OresundsbronOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(title="Update Intervals", data=user_input)
 
         # Default values for update intervals
         current_options = self.config_entry.options
