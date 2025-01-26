@@ -27,11 +27,17 @@ class OresundsbronAPI:
         url = f"{self.base_url}/api/auth/v1/login"
         headers = {"X-Azure-Api-Secret": self.secret_key}
 
+        # Add the rcToken to the request body
+        body = {
+            **credentials,
+            "rcToken": "app"  # Hardcoded value
+        }
+
         try:
-            response = requests.post(url, json=credentials, headers=headers)
+            response = requests.post(url, json=body, headers=headers)
 
             # Log both request and response
-            self.log_request_response(url, "POST", headers, credentials, response)
+            self.log_request_response(url, "POST", headers, body, response)
 
             if response.status_code == 200:
                 data = response.json()
