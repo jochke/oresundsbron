@@ -19,7 +19,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class WebcamCamera(Camera):
-    """Camera entity for Öresundsbron webcams."""
+    """Camera entity for Øsundsbron webcams."""
 
     def __init__(self, api, cam_id, unique_id):
         super().__init__()

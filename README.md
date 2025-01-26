@@ -1,6 +1,6 @@
-<img src="https://github.com/jochke/oresundsbron/blob/main/oresundsbron-logo.svg" alt="Öresundsbron Logo" width="200" />
+<img src="https://github.com/jochke/oresundsbron/blob/main/oresundsbron-logo.svg" alt="Øresundsbron Logo" width="200" />
 
-# Øresundsbron Integration
+# Øresundsbron
 
 This integration connects your Home Assistant instance to the Øresundsbron services, enabling real-time monitoring of bridge status, queue times, agreement data, trip details, weather conditions, and live webcam feeds.
 
@@ -95,7 +95,7 @@ You can configure update intervals for the following via the integration options
 If you encounter issues:
 1. Ensure your credentials are correct.
 2. Check the Home Assistant logs for error messages.
-3. Verify your internet connection and the availability of the Öresundsbron API.
+3. Verify your internet connection and the availability of the Øresundsbron API.
 
 For further assistance, visit the [GitHub Issues Page](https://github.com/jochke/oresundsbron/issues).
 

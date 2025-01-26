@@ -5,7 +5,7 @@ from .const import DOMAIN
 from .api import OresundsbronAPI  # Ensure API is imported for validation
 
 class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Öresundsbron."""
+    """Handle a config flow for Øresundsbron."""
 
     VERSION = 1
 
@@ -18,7 +18,7 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 # Validate credentials
                 await api.authenticate(user_input)
-                return self.async_create_entry(title="Öresundsbron", data=user_input)
+                return self.async_create_entry(title="Øresundsbron", data=user_input)
             except Exception:
                 errors["base"] = "auth_failed"
 
@@ -39,7 +39,7 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class OresundsbronOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle the options flow for Öresundsbron."""
+    """Handle the options flow for Øresundsbron."""
 
     def __init__(self, config_entry):
         """Initialize options flow."""
