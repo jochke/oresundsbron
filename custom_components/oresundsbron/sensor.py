@@ -1,4 +1,5 @@
 from homeassistant.helpers.entity import Entity
+from homeassistant.components.camera import Camera
 from .api import OresundsbronAPI
 from .const import DOMAIN
 import logging
@@ -12,17 +13,17 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     # Authenticate using an executor to avoid blocking the event loop
     await hass.async_add_executor_job(api.authenticate, config_entry.data)
 
-    sensors = [
+    entities = [
         BridgeStatusSensor(api),
         QueueTimeSensor(api, direction="towardsSweden"),
         QueueTimeSensor(api, direction="towardsDenmark"),
-        WebcamSensor(api, "pyloneast"),
-        WebcamSensor(api, "pylonwest"),
+        WebcamCamera(api, "pyloneast"),
+        WebcamCamera(api, "pylonwest"),
         AccountHiddenSensor(api, "customerNo"),
         AccountHiddenSensor(api, "contracts"),
         LastTripSensor(api)
     ]
-    async_add_entities(sensors)
+    async_add_entities(entities)
 
 class BridgeStatusSensor(Entity):
     """Sensor for the bridge status."""
@@ -59,32 +60,37 @@ class QueueTimeSensor(Entity):
     def state(self):
         return self._state
 
+    @property
+    def extra_state_attributes(self):
+        return {"unit_of_measurement": "minutes"}
+
     async def async_update(self):
         data = await self.api.async_make_request("/api/content/v1/bridge-status/queueTime")
         self._state = data.get(self.direction, {}).get("value")
 
-class WebcamSensor(Entity):
-    """Sensor for the webcam images."""
+class WebcamCamera(Camera):
+    """Camera for the webcam images."""
 
     def __init__(self, api, cam_id):
+        super().__init__()
         self.api = api
         self.cam_id = cam_id
-        self._image = None
+        self._image_url = f"https://cams.oresundsbron.com/{self.cam_id}"
 
     @property
     def name(self):
         return f"Webcam {self.cam_id.title()}"
 
     @property
-    def state(self):
-        return "Image Available"
+    def is_streaming(self):
+        return True
 
-    @property
-    def extra_state_attributes(self):
-        return {"image_url": f"https://cams.oresundsbron.com/{self.cam_id}"}
+    async def async_camera_image(self):
+        return await self.api.async_fetch_image(self._image_url)
 
     async def async_update(self):
-        self._image = f"https://cams.oresundsbron.com/{self.cam_id}"
+        # Webcam updates every 30 seconds, no additional logic needed as HA will handle intervals
+        pass
 
 class AccountHiddenSensor(Entity):
     """Hidden sensors for account information."""
