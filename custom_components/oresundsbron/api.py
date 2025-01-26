@@ -27,9 +27,13 @@ class OresundsbronAPI:
 
         try:
             response = requests.post(url, json=credentials, headers=headers)
+            
+            # Debug logs for request details
             _LOGGER.debug("Authentication request URL: %s", url)
             _LOGGER.debug("Authentication request headers: %s", headers)
             _LOGGER.debug("Authentication request body: %s", credentials)
+            
+            # Debug logs for response details
             _LOGGER.debug("Authentication response status: %s", response.status_code)
             _LOGGER.debug("Authentication response body: %s", response.text)
 
@@ -38,7 +42,7 @@ class OresundsbronAPI:
                 self.token = data["token"]
                 self.refresh_token = data["refreshToken"]
             else:
-                raise Exception("Authentication failed")
+                raise Exception(f"Authentication failed with status {response.status_code}: {response.text}")
 
         except Exception as e:
             _LOGGER.error("Error during authentication: %s", e)
@@ -54,10 +58,14 @@ class OresundsbronAPI:
 
         try:
             response = requests.request(method, url, headers=headers, params=params)
+            
+            # Debug logs for request details
             _LOGGER.debug("Request URL: %s", url)
             _LOGGER.debug("Request headers: %s", headers)
             _LOGGER.debug("Request method: %s", method)
             _LOGGER.debug("Request params: %s", params)
+            
+            # Debug logs for response details
             _LOGGER.debug("Response status: %s", response.status_code)
             _LOGGER.debug("Response body: %s", response.text)
 
