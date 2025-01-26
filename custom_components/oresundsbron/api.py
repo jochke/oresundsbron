@@ -31,7 +31,9 @@ class OresundsbronAPI:
                 secret_list[-(i + 1)] = random.choice(characters)
 
         # Return the modified secret
-        return ''.join(secret_list)
+        generated_secret = ''.join(secret_list)
+        _LOGGER.debug("Generated X-Azure-Api-Secret: %s", generated_secret)
+        return generated_secret
 
     def authenticate(self, credentials):
         """Authenticate with the API and retrieve tokens."""
@@ -55,11 +57,19 @@ class OresundsbronAPI:
                 data = response.json()
                 self.token = data["token"]
                 self.refresh_token = data["refreshToken"]
+                _LOGGER.info("Authentication successful!")
             else:
-                raise Exception(f"Authentication failed with status {response.status_code}: {response.text}")
+                # Log the response when authentication fails
+                _LOGGER.error(
+                    "Authentication failed with status %s: %s",
+                    response.status_code,
+                    response.text,
+                )
+                raise Exception(f"Authentication failed: {response.text}")
 
         except Exception as e:
-            _LOGGER.error("Error during authentication: %s", e)
+            # Log the exact error
+            _LOGGER.error("Error during authentication: %s", str(e))
             raise
 
     def make_request(self, endpoint, method="GET", params=None):
@@ -85,11 +95,13 @@ class OresundsbronAPI:
             _LOGGER.debug("Response body: %s", response.text)
 
             if response.status_code == 401:
+                _LOGGER.error("Unauthorized request: %s", response.text)
                 raise Exception("Unauthorized. Check your credentials or refresh token.")
 
             response.raise_for_status()
             return response.json()
 
         except Exception as e:
-            _LOGGER.error("Error during API request: %s", e)
+            # Log the exact error
+            _LOGGER.error("Error during API request: %s", str(e))
             raise
