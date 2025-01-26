@@ -1,11 +1,12 @@
 {
   "domain": "oresundsbron",
   "name": "Øresundsbron",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "documentation": "https://github.com/jochke/oresundsbron",
   "dependencies": [],
   "requirements": [],
   "codeowners": ["@jochke"],
   "iot_class": "cloud_polling",
-  "config_flow": true
+  "config_flow": true,
+  "logo": "oresundsbron-logo.svg"
 }

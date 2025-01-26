@@ -58,23 +58,25 @@ class AgreementStatusSensor(Entity):
 
     @property
     def name(self):
-        return f"Agreement Status ({self.contract_no})"
+        return "Status"
 
     @property
     def state(self):
         return self.contract.get("status")
 
     @property
+    def icon(self):
+        return "mdi:card-account-details"
+
+    @property
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, f"agreement_{self.contract_no}")},
             "name": f"Agreement {self.contract_no}",
-            "manufacturer": "Öresundsbron",
+            "manufacturer": "Øresundsbron",
             "model": self.contract.get("contractType"),
             "entry_type": None,
-            "configuration_url": "https://www.oresund.io/",
-            "via_device": (DOMAIN, "oresundsbron_account"),
-            "sw_version": "v1.0",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_update(self):
@@ -97,7 +99,7 @@ class AgreementDeviceLatestTripSensor(Entity):
 
     @property
     def name(self):
-        return f"Latest Trip (Agreement {self.contract_no})"
+        return "Latest Trip"
 
     @property
     def state(self):
@@ -108,14 +110,18 @@ class AgreementDeviceLatestTripSensor(Entity):
         return self._attributes
 
     @property
+    def icon(self):
+        return "mdi:car"
+
+    @property
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, f"agreement_{self.contract_no}")},
             "name": f"Agreement {self.contract_no}",
-            "manufacturer": "Öresundsbron",
+            "manufacturer": "Øresundsbron",
             "model": self.contract.get("contractType"),
             "entry_type": None,
-            "configuration_url": "https://www.oresund.io/",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_update(self):
@@ -126,13 +132,17 @@ class AgreementDeviceLatestTripSensor(Entity):
         trips = data.get("trips", [])
         if trips:
             last_trip = trips[0]
+            direction = last_trip.get("direction")
             self._state = last_trip.get("dateTime")
             self._attributes = {
                 "trip_id": last_trip.get("id"),
-                "price_amountInclVAT": last_trip.get("price", {}).get("amountInclVAT"),
-                "alpr": last_trip.get("alpr"),
-                "direction": last_trip.get("direction"),
-                "contract": self.contract_no,
+                "Price incl. VAT": last_trip.get("price", {}).get("amountInclVAT"),
+                "License Plate": last_trip.get("alpr"),
+                "Contract No": self.contract_no,
+                "Bizz No": last_trip.get("bizzNr"),
+                "Currency": last_trip.get("price", {}).get("currencyCode"),
+                "Price ex. VAT": last_trip.get("price", {}).get("amount"),
+                "direction": "SE" if direction == "countries.sweden" else "DK",
                 "actor": last_trip.get("actor"),
             }
 
@@ -157,14 +167,18 @@ class BridgeStatusSensor(Entity):
         return self._state
 
     @property
+    def icon(self):
+        return "mdi:bridge"
+
+    @property
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
-            "manufacturer": "Öresundsbron",
+            "manufacturer": "Øresundsbron",
             "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresund.io/",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_update(self):
@@ -187,25 +201,29 @@ class QueueTimeSensor(Entity):
 
     @property
     def name(self):
-        return f"Queue Time {self.direction.title()}"
+        return f"Toll Waiting Time Towards {self.direction.title()}"
 
     @property
     def state(self):
         return self._state
 
     @property
+    def icon(self):
+        return "mdi:clock-outline"
+
+    @property
     def extra_state_attributes(self):
-        return {"unit_of_measurement": "minutes"}
+        return {"unit_of_measurement": "Minutes"}
 
     @property
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
-            "manufacturer": "Öresundsbron",
+            "manufacturer": "Øresundsbron",
             "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresund.io/",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_update(self):
@@ -232,6 +250,10 @@ class WebcamCamera(Camera):
         return f"Webcam {self.cam_id.title()}"
 
     @property
+    def icon(self):
+        return "mdi:video"
+
+    @property
     def is_streaming(self):
         return True
 
@@ -240,10 +262,10 @@ class WebcamCamera(Camera):
         return {
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
-            "manufacturer": "Öresundsbron",
+            "manufacturer": "Øresundsbron",
             "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresund.io/",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_camera_image(self):
@@ -263,38 +285,10 @@ class BridgeWeatherSensor(Entity):
         self.sensor_type = sensor_type
 
     @property
-    def unique_id(self):
-        return self._unique_id
-
-    @property
-    def name(self):
-        return f"Bridge Weather {self.sensor_type.title()}"
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def extra_state_attributes(self):
-        return self._attributes
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, "bridge_device")},
-            "name": "The Bridge",
-            "manufacturer": "Öresundsbron",
-            "model": "Bridge API",
-            "entry_type": None,
-            "configuration_url": "https://www.oresund.io/",
-        }
-
-    async def async_update(self):
-        """Fetch weather conditions."""
-        data = await self.api.async_make_request("/api/content/v1/bridge-status/weather")
+    def unit_of_measurement(self):
         if self.sensor_type == "temperature":
-            self._state = data.get("temperature")
+            return "°C"
         elif self.sensor_type == "windspeed":
-            self._state = data.get("windspeed")
+            return "m/s"
         elif self.sensor_type == "direction":
-            self._state = data.get("direction")
+            return None
