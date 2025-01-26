@@ -47,13 +47,19 @@ class OresundsbronAPI:
                     _LOGGER.error(f"Request failed: {response.status} - {error_text}")
                     raise Exception(f"Request failed: {response.status}")
 
-    async def async_fetch_image(self, image_url):
-        """Fetch a webcam image asynchronously."""
+async def async_fetch_image(self, image_url):
+    """Fetch a webcam image asynchronously."""
+    try:
+        _LOGGER.debug("Attempting to fetch image from URL: %s", image_url)
         async with aiohttp.ClientSession() as session:
             async with session.get(image_url) as response:
                 if response.status == 200:
+                    _LOGGER.debug("Image fetched successfully from URL: %s", image_url)
                     return await response.read()
                 else:
                     error_text = await response.text()
                     _LOGGER.error(f"Image fetch failed: {response.status} - {error_text}")
-                    raise Exception(f"Image fetch failed: {response.status}")
+                    return None
+    except Exception as e:
+        _LOGGER.error("Error during image fetch: %s", e)
+        return None

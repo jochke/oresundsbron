@@ -7,7 +7,7 @@
     "codeowners": ["@jochke"],
     "documentation": "https://github.com/jochke/oresundsbron",
     "issue_tracker": "https://github.com/jochke/oresundsbron/issues",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "iot_class": "Cloud Polling",
     "logo": "oresundsbron-logo.svg"
   }
