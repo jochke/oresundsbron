@@ -11,7 +11,7 @@ class OresundsbronAPI:
         self.base_url = "https://www.oresund.io"
         self.token = None
         self.refresh_token = None
-        self.secret_key = "fqF*MVT6VUX03#wCUkbV"  # Constant value for X-Azure-Api-Secret
+        self.secret_key = "fqF*MVT6VUX03#wCUkbV"
 
     def log_request_response(self, url, method, headers, body, response):
         """Log request and response details for debugging."""
@@ -30,7 +30,7 @@ class OresundsbronAPI:
         # Add the rcToken to the request body
         body = {
             **credentials,
-            "rcToken": "app"  # Hardcoded value
+            "rcToken": "app"
         }
 
         try:
