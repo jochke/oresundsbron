@@ -1,17 +1,82 @@
 {
-    "config": {
+  "title": "Øresundsbron Integration",
+  "config": {
       "step": {
-        "user": {
-          "title": "Set up Øresundsbron",
-          "description": "Enter your Øresundsbron credentials to start.",
-          "data": {
-            "username": "Username",
-            "password": "Password"
+          "user": {
+              "title": "Configure Øresundsbron",
+              "description": "Enter your Øresundsbron credentials.",
+              "data": {
+                  "username": "Username",
+                  "password": "Password"
+              }
           }
-        }
       },
       "error": {
-        "auth_failed": "Authentication failed. Please check your credentials."
+          "auth_failed": "Authentication failed. Please check your credentials."
+      },
+      "options": {
+          "title": "Øresundsbron Options",
+          "description": "Configure update intervals for your Øresundsbron integration.",
+          "fields": {
+              "update_interval_latest_trip": {
+                  "name": "Latest Trip Update Interval (minutes)",
+                  "description": "How often to update the latest trip sensor."
+              },
+              "update_interval_bridge": {
+                  "name": "Bridge Update Interval (minutes)",
+                  "description": "How often to update bridge sensors (status, queue times, weather)."
+              },
+              "update_interval_webcams": {
+                  "name": "Webcam Update Interval (seconds)",
+                  "description": "How often to update webcam images."
+              }
+          }
       }
-    }
+  },
+  "entity": {
+      "sensor": {
+          "agreement_status": {
+              "name": "Agreement Status",
+              "icon": "mdi:account-check"
+          },
+          "latest_trip": {
+              "name": "Latest Trip",
+              "icon": "mdi:car-info"
+          },
+          "bridge_status": {
+              "name": "Bridge Status",
+              "icon": "mdi:bridge"
+          },
+          "queue_time_sweden": {
+              "name": "Queue Time (Sweden)",
+              "icon": "mdi:clock-outline"
+          },
+          "queue_time_denmark": {
+              "name": "Queue Time (Denmark)",
+              "icon": "mdi:clock-outline"
+          },
+          "temperature": {
+              "name": "Temperature",
+              "icon": "mdi:thermometer"
+          },
+          "windspeed": {
+              "name": "Wind Speed",
+              "icon": "mdi:weather-windy"
+          },
+          "direction": {
+              "name": "Wind Direction",
+              "icon": "mdi:compass"
+          }
+      },
+      "camera": {
+          "webcam_pyloneast": {
+              "name": "Webcam Pylon East",
+              "icon": "mdi:camera"
+          },
+          "webcam_pylonwest": {
+              "name": "Webcam Pylon West",
+              "icon": "mdi:camera"
+          }
+      }
   }
+}

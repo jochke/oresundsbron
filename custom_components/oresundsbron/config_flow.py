@@ -1,59 +1,71 @@
 from homeassistant import config_entries
 from homeassistant.core import callback
-from .const import DOMAIN, AUTH_URL
-from .api import OresundsbronAPI
 import voluptuous as vol
 
-# Define the data schema for user input
-data_schema = vol.Schema({
-    vol.Required("username"): str,
-    vol.Required("password"): str
-})
+from .const import DOMAIN
 
 class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Øresundsbron."""
+    """Handle a config flow for Öresundsbron."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
-            api = OresundsbronAPI()
-            try:
-                # Attempt to authenticate with the API
-                await self.hass.async_add_executor_job(api.authenticate, user_input)
+            # Here we could validate the credentials via the API if needed
+            return self.async_create_entry(title="Öresundsbron", data=user_input)
 
-                # If successful, create the entry
-                return self.async_create_entry(title="Øresundsbron", data=user_input)
-
-            except Exception:
-                errors["base"] = "auth_failed"
+        data_schema = vol.Schema({
+            vol.Required("username"): str,
+            vol.Required("password"): str,
+        })
 
         return self.async_show_form(
-            step_id="user",
-            data_schema=data_schema,
-            errors=errors
+            step_id="user", data_schema=data_schema, errors=errors
         )
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return OresundsbronOptionsFlowHandler()
+        return OresundsbronOptionsFlowHandler(config_entry)
+
 
 class OresundsbronOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options for Øresundsbron."""
+    """Handle the options flow for Öresundsbron."""
 
-    def __init__(self):
+    def __init__(self, config_entry):
         """Initialize options flow."""
-        pass
+        self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Default values for update intervals
+        current_options = self.config_entry.options
+        update_interval_latest_trip = current_options.get("update_interval_latest_trip", 5)
+        update_interval_bridge = current_options.get("update_interval_bridge", 5)
+        update_interval_webcams = current_options.get("update_interval_webcams", 30)
+
+        options_schema = vol.Schema({
+            vol.Required(
+                "update_interval_latest_trip",
+                default=update_interval_latest_trip
+            ): vol.All(vol.Coerce(int), vol.Range(min=1, max=60)),
+            vol.Required(
+                "update_interval_bridge",
+                default=update_interval_bridge
+            ): vol.All(vol.Coerce(int), vol.Range(min=1, max=60)),
+            vol.Required(
+                "update_interval_webcams",
+                default=update_interval_webcams
+            ): vol.All(vol.Coerce(int), vol.Range(min=10, max=60)),
+        })
+
         return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema({}),
+            step_id="init", data_schema=options_schema
         )

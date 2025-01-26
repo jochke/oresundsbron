@@ -4,7 +4,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 class OresundsbronAPI:
-    """Handle communication with the Øresundsbron API."""
+    """Handle communication with the Öresundsbron API."""
 
     def __init__(self):
         self.base_url = "https://www.oresund.io"
@@ -47,16 +47,13 @@ class OresundsbronAPI:
                     _LOGGER.error(f"Request failed: {response.status} - {error_text}")
                     raise Exception(f"Request failed: {response.status}")
 
-    async def async_fetch_image(self, url):
-        """Fetch an image from a given URL."""
+    async def async_fetch_image(self, image_url):
+        """Fetch a webcam image asynchronously."""
         async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        return await response.read()  # Return the image bytes
-                    else:
-                        _LOGGER.error(f"Failed to fetch image from {url}: {response.status}")
-                        return None
-            except Exception as e:
-                _LOGGER.error(f"Error fetching image from {url}: {e}")
-                return None
+            async with session.get(image_url) as response:
+                if response.status == 200:
+                    return await response.read()
+                else:
+                    error_text = await response.text()
+                    _LOGGER.error(f"Image fetch failed: {response.status} - {error_text}")
+                    raise Exception(f"Image fetch failed: {response.status}")

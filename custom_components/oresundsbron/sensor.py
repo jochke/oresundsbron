@@ -10,21 +10,131 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up sensors for Øresundsbron from a config entry."""
     api = OresundsbronAPI()
+    await api.authenticate(config_entry.data)
 
-    # Authenticate using an executor to avoid blocking the event loop
-    await hass.async_add_executor_job(api.authenticate, config_entry.data)
+    # Fetch account details to retrieve contracts
+    account_data = await api.async_make_request("/api/customer/v1/account")
+    contracts = account_data.get("contracts", [])
 
-    entities = [
+    entities = []
+
+    # Create entities for each contract (Agreement Devices)
+    for contract in contracts:
+        contract_no = contract.get("contractNo")
+        entities.append(
+            AgreementStatusSensor(api, contract, f"agreement_status_{contract_no}")
+        )
+        entities.append(
+            AgreementDeviceLatestTripSensor(api, contract, f"last_trip_{contract_no}")
+        )
+
+    # Add the single Bridge Device entities
+    entities.extend([
         BridgeStatusSensor(api, "bridge_status"),
         QueueTimeSensor(api, "towardsSweden", "queue_time_sweden"),
         QueueTimeSensor(api, "towardsDenmark", "queue_time_denmark"),
         WebcamCamera(api, "pyloneast", "webcam_pyloneast"),
         WebcamCamera(api, "pylonwest", "webcam_pylonwest"),
-        AccountHiddenSensor(api, "customerNo", "account_customer_no"),
-        AccountHiddenSensor(api, "contracts", "account_contracts"),
-        LastTripSensor(api, "last_trip")
-    ]
+        BridgeWeatherSensor(api, "bridge_weather_temperature", "temperature"),
+        BridgeWeatherSensor(api, "bridge_weather_windspeed", "windspeed"),
+        BridgeWeatherSensor(api, "bridge_weather_direction", "direction"),
+    ])
+
     async_add_entities(entities)
+
+class AgreementStatusSensor(Entity):
+    """Sensor for agreement status."""
+
+    def __init__(self, api, contract, unique_id):
+        self.api = api
+        self.contract = contract
+        self.contract_no = contract.get("contractNo")
+        self._unique_id = unique_id
+        self._state = None
+
+    @property
+    def unique_id(self):
+        return self._unique_id
+
+    @property
+    def name(self):
+        return f"Agreement Status ({self.contract_no})"
+
+    @property
+    def state(self):
+        return self.contract.get("status")
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, f"agreement_{self.contract_no}")},
+            "name": f"Agreement {self.contract_no}",
+            "manufacturer": "Öresundsbron",
+            "model": self.contract.get("contractType"),
+            "entry_type": None,
+            "configuration_url": "https://www.oresund.io/",
+            "via_device": (DOMAIN, "oresundsbron_account"),
+            "sw_version": "v1.0",
+        }
+
+    async def async_update(self):
+        self._state = self.contract.get("status")
+
+class AgreementDeviceLatestTripSensor(Entity):
+    """Sensor for the latest trip details under an agreement."""
+
+    def __init__(self, api, contract, unique_id):
+        self.api = api
+        self.contract = contract
+        self.contract_no = contract.get("contractNo")
+        self._unique_id = unique_id
+        self._state = None
+        self._attributes = {}
+
+    @property
+    def unique_id(self):
+        return self._unique_id
+
+    @property
+    def name(self):
+        return f"Latest Trip (Agreement {self.contract_no})"
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def extra_state_attributes(self):
+        return self._attributes
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, f"agreement_{self.contract_no}")},
+            "name": f"Agreement {self.contract_no}",
+            "manufacturer": "Öresundsbron",
+            "model": self.contract.get("contractType"),
+            "entry_type": None,
+            "configuration_url": "https://www.oresund.io/",
+        }
+
+    async def async_update(self):
+        """Fetch latest trip details for the agreement."""
+        data = await self.api.async_make_request(
+            "/api/customer/v1/trips", params={"contractNo": self.contract_no, "page": 1, "tripsType": "Trip", "pageSize": 3}
+        )
+        trips = data.get("trips", [])
+        if trips:
+            last_trip = trips[0]
+            self._state = last_trip.get("dateTime")
+            self._attributes = {
+                "trip_id": last_trip.get("id"),
+                "price_amountInclVAT": last_trip.get("price", {}).get("amountInclVAT"),
+                "alpr": last_trip.get("alpr"),
+                "direction": last_trip.get("direction"),
+                "contract": self.contract_no,
+                "actor": last_trip.get("actor"),
+            }
 
 class BridgeStatusSensor(Entity):
     """Sensor for the bridge status."""
@@ -46,7 +156,19 @@ class BridgeStatusSensor(Entity):
     def state(self):
         return self._state
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, "bridge_device")},
+            "name": "The Bridge",
+            "manufacturer": "Öresundsbron",
+            "model": "Bridge API",
+            "entry_type": None,
+            "configuration_url": "https://www.oresund.io/",
+        }
+
     async def async_update(self):
+        """Fetch bridge status."""
         data = await self.api.async_make_request("/api/content/v1/bridge-status/status")
         self._state = data.get("status")
 
@@ -75,7 +197,19 @@ class QueueTimeSensor(Entity):
     def extra_state_attributes(self):
         return {"unit_of_measurement": "minutes"}
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, "bridge_device")},
+            "name": "The Bridge",
+            "manufacturer": "Öresundsbron",
+            "model": "Bridge API",
+            "entry_type": None,
+            "configuration_url": "https://www.oresund.io/",
+        }
+
     async def async_update(self):
+        """Fetch queue times."""
         data = await self.api.async_make_request("/api/content/v1/bridge-status/queueTime")
         self._state = data.get(self.direction, {}).get("value")
 
@@ -88,7 +222,6 @@ class WebcamCamera(Camera):
         self.cam_id = cam_id
         self._unique_id = unique_id
         self._image_url = f"https://cams.oresundsbron.com/{self.cam_id}"
-        self._image_data = None
 
     @property
     def unique_id(self):
@@ -100,57 +233,34 @@ class WebcamCamera(Camera):
 
     @property
     def is_streaming(self):
-        return False  # This is a still image, not a stream
+        return True
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, "bridge_device")},
+            "name": "The Bridge",
+            "manufacturer": "Öresundsbron",
+            "model": "Bridge API",
+            "entry_type": None,
+            "configuration_url": "https://www.oresund.io/",
+        }
 
     async def async_camera_image(self):
-        """Fetch the latest camera image."""
-        try:
-            self._image_data = await self.api.async_fetch_image(self._image_url)
-        except Exception as e:
-            _LOGGER.error(f"Failed to fetch image for {self.name}: {e}")
-            self._image_data = None
-        return self._image_data
+        return await self.api.async_fetch_image(self._image_url)
 
     async def async_update(self):
-        """Update camera image."""
-        await self.async_camera_image()
+        pass
 
-class AccountHiddenSensor(Entity):
-    """Hidden sensors for account information."""
+class BridgeWeatherSensor(Entity):
+    """Sensor for bridge weather conditions."""
 
-    def __init__(self, api, sensor_type, unique_id):
-        self.api = api
-        self.sensor_type = sensor_type
-        self._state = None
-        self._unique_id = unique_id
-
-    @property
-    def unique_id(self):
-        return self._unique_id
-
-    @property
-    def name(self):
-        return f"Account {self.sensor_type.title()}"
-
-    @property
-    def state(self):
-        return self._state
-
-    async def async_update(self):
-        data = await self.api.async_make_request("/api/customer/v1/account")
-        if self.sensor_type == "customerNo":
-            self._state = data.get("customerNo")
-        elif self.sensor_type == "contracts":
-            self._state = len(data.get("contracts", []))
-
-class LastTripSensor(Entity):
-    """Sensor for the last trip details."""
-
-    def __init__(self, api, unique_id):
+    def __init__(self, api, unique_id, sensor_type):
         self.api = api
         self._state = None
         self._attributes = {}
         self._unique_id = unique_id
+        self.sensor_type = sensor_type
 
     @property
     def unique_id(self):
@@ -158,7 +268,7 @@ class LastTripSensor(Entity):
 
     @property
     def name(self):
-        return "Last Trip"
+        return f"Bridge Weather {self.sensor_type.title()}"
 
     @property
     def state(self):
@@ -168,21 +278,23 @@ class LastTripSensor(Entity):
     def extra_state_attributes(self):
         return self._attributes
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, "bridge_device")},
+            "name": "The Bridge",
+            "manufacturer": "Öresundsbron",
+            "model": "Bridge API",
+            "entry_type": None,
+            "configuration_url": "https://www.oresund.io/",
+        }
+
     async def async_update(self):
-        data = await self.api.async_make_request("/api/customer/v1/trips", params={"page": 1, "pageSize": 1})
-        trips = data.get("trips", [])
-        if trips:
-            last_trip = trips[0]
-            self._state = last_trip.get("id")
-            self._attributes = {
-                "dateTime": last_trip.get("dateTime"),
-                "station": last_trip.get("station"),
-                "type": last_trip.get("type"),
-                "price_currencyCode": last_trip.get("price", {}).get("currencyCode"),
-                "price_amountInclVAT": last_trip.get("price", {}).get("amountInclVAT"),
-                "price_amount": last_trip.get("price", {}).get("amount"),
-                "alpr": last_trip.get("alpr"),
-                "bizzNr": last_trip.get("bizzNr"),
-                "direction": last_trip.get("direction"),
-                "actor": last_trip.get("actor")
-            }
+        """Fetch weather conditions."""
+        data = await self.api.async_make_request("/api/content/v1/bridge-status/weather")
+        if self.sensor_type == "temperature":
+            self._state = data.get("temperature")
+        elif self.sensor_type == "windspeed":
+            self._state = data.get("windspeed")
+        elif self.sensor_type == "direction":
+            self._state = data.get("direction")
