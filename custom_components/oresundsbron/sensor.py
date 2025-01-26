@@ -33,8 +33,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         BridgeStatusSensor(api, "bridge_status"),
         QueueTimeSensor(api, "towardsSweden", "queue_time_sweden"),
         QueueTimeSensor(api, "towardsDenmark", "queue_time_denmark"),
-        WebcamCamera(api, "pyloneast", "webcam_pyloneast"),
-        WebcamCamera(api, "pylonwest", "webcam_pylonwest"),
         BridgeWeatherSensor(api, "temperature", "temperature"),
         BridgeWeatherSensor(api, "windspeed", "windspeed"),
         BridgeWeatherSensor(api, "direction", "direction"),

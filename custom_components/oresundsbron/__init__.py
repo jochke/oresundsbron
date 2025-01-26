@@ -19,26 +19,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize the API object
     api = OresundsbronAPI()
-    await api.authenticate(entry.data)
 
-    # Store the API object and entry data in hass.data
-    hass.data[DOMAIN]["api"] = api
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+    try:
+        await api.authenticate(entry.data)
+        # Store the API object in hass.data
+        hass.data[DOMAIN]["api"] = api
+        hass.data[DOMAIN][entry.entry_id] = entry.data
 
-    # Forward the setup to the sensor and camera platforms
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        # Forward the setup to the sensor and camera platforms
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        _LOGGER.info("Øresundsbron integration is set up.")
+        return True
 
-    _LOGGER.info("Øresundsbron integration is set up.")
-    return True
+    except Exception as e:
+        _LOGGER.error("Failed to set up the Øresundsbron integration: %s", e)
+        return False
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-        # Remove the API reference if this is the last entry
+        # Clean up the data for this entry
+        hass.data[DOMAIN].pop(entry.entry_id, None)
+
+        # Remove the API reference if no other entries exist
         if not hass.data[DOMAIN]:
-            hass.data.pop(DOMAIN)
+            hass.data.pop(DOMAIN, None)
 
     _LOGGER.info("Øresundsbron integration is unloaded.")
     return unload_ok
