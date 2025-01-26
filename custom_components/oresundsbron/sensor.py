@@ -76,7 +76,7 @@ class AgreementStatusSensor(Entity):
             "manufacturer": "Øresundsbron",
             "model": self.contract.get("contractType"),
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_update(self):
@@ -121,7 +121,7 @@ class AgreementDeviceLatestTripSensor(Entity):
             "manufacturer": "Øresundsbron",
             "model": self.contract.get("contractType"),
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
+            "configuration_url": "https://www.oresundsbron.com/account/login",
         }
 
     async def async_update(self):
@@ -176,8 +176,9 @@ class BridgeStatusSensor(Entity):
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
             "manufacturer": "Øresundsbron",
+            "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/account/login",
+            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
         }
 
     async def async_update(self):
@@ -220,8 +221,9 @@ class QueueTimeSensor(Entity):
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
             "manufacturer": "Øresundsbron",
+            "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/account/login",
+            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
         }
 
     async def async_update(self):
@@ -245,11 +247,14 @@ class WebcamCamera(Camera):
 
     @property
     def name(self):
-        return f"Webcam {self.cam_id.title()}"
+        if self.cam_id == "pyloneast":
+            return "Pylon Cam East View"
+        elif self.cam_id == "pylonwest":
+            return "Pylon Cam West View"
 
     @property
     def icon(self):
-        return "mdi:video"
+        return self._image_url
 
     @property
     def is_streaming(self):
@@ -261,8 +266,9 @@ class WebcamCamera(Camera):
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
             "manufacturer": "Øresundsbron",
+            "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/account/login",
+            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
         }
 
     async def async_camera_image(self):
@@ -319,7 +325,7 @@ class BridgeWeatherSensor(Entity):
             "manufacturer": "Øresundsbron",
             "model": "Bridge API",
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/account/login",
+            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
         }
 
     @property
