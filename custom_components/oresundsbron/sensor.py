@@ -88,6 +88,7 @@ class WebcamCamera(Camera):
         self.cam_id = cam_id
         self._unique_id = unique_id
         self._image_url = f"https://cams.oresundsbron.com/{self.cam_id}"
+        self._image_data = None
 
     @property
     def unique_id(self):
@@ -99,14 +100,20 @@ class WebcamCamera(Camera):
 
     @property
     def is_streaming(self):
-        return True
+        return False  # This is a still image, not a stream
 
     async def async_camera_image(self):
-        return await self.api.async_fetch_image(self._image_url)
+        """Fetch the latest camera image."""
+        try:
+            self._image_data = await self.api.async_fetch_image(self._image_url)
+        except Exception as e:
+            _LOGGER.error(f"Failed to fetch image for {self.name}: {e}")
+            self._image_data = None
+        return self._image_data
 
     async def async_update(self):
-        # Webcam updates every 30 seconds, no additional logic needed as HA will handle intervals
-        pass
+        """Update camera image."""
+        await self.async_camera_image()
 
 class AccountHiddenSensor(Entity):
     """Hidden sensors for account information."""
