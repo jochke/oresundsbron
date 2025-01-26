@@ -1,4 +1,3 @@
-# sensor.py
 from homeassistant.helpers.entity import Entity
 from .api import OresundsbronAPI
 from .const import DOMAIN
@@ -9,7 +8,9 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up sensors for Øresundsbron from a config entry."""
     api = OresundsbronAPI()
-    api.authenticate(config_entry.data)
+
+    # Authenticate using an executor to avoid blocking the event loop
+    await hass.async_add_executor_job(api.authenticate, config_entry.data)
 
     sensors = [
         BridgeStatusSensor(api),
@@ -39,7 +40,7 @@ class BridgeStatusSensor(Entity):
         return self._state
 
     async def async_update(self):
-        data = self.api.make_request("/api/content/v1/bridge-status/status")
+        data = await self.api.async_make_request("/api/content/v1/bridge-status/status")
         self._state = data.get("status")
 
 class QueueTimeSensor(Entity):
@@ -59,7 +60,7 @@ class QueueTimeSensor(Entity):
         return self._state
 
     async def async_update(self):
-        data = self.api.make_request("/api/content/v1/bridge-status/queueTime")
+        data = await self.api.async_make_request("/api/content/v1/bridge-status/queueTime")
         self._state = data.get(self.direction, {}).get("value")
 
 class WebcamSensor(Entity):
@@ -102,7 +103,7 @@ class AccountHiddenSensor(Entity):
         return self._state
 
     async def async_update(self):
-        data = self.api.make_request("/api/customer/v1/account")
+        data = await self.api.async_make_request("/api/customer/v1/account")
         if self.sensor_type == "customerNo":
             self._state = data.get("customerNo")
         elif self.sensor_type == "contracts":
@@ -129,7 +130,7 @@ class LastTripSensor(Entity):
         return self._attributes
 
     async def async_update(self):
-        data = self.api.make_request("/api/customer/v1/trips", params={"page": 1, "pageSize": 1})
+        data = await self.api.async_make_request("/api/customer/v1/trips", params={"page": 1, "pageSize": 1})
         trips = data.get("trips", [])
         if trips:
             last_trip = trips[0]

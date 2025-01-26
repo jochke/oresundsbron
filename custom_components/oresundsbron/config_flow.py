@@ -1,4 +1,3 @@
-# config_flow.py
 from homeassistant import config_entries
 from homeassistant.core import callback
 from .const import DOMAIN, AUTH_URL
@@ -30,7 +29,7 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # If successful, create the entry
                 return self.async_create_entry(title="Øresundsbron", data=user_input)
 
-            except Exception as e:
+            except Exception:
                 errors["base"] = "auth_failed"
 
         return self.async_show_form(
@@ -43,14 +42,14 @@ class OresundsbronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return OresundsbronOptionsFlowHandler(config_entry)
+        return OresundsbronOptionsFlowHandler()
 
 class OresundsbronOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options for Øresundsbron."""
 
-    def __init__(self, config_entry):
+    def __init__(self):
         """Initialize options flow."""
-        self.config_entry = config_entry
+        pass
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
