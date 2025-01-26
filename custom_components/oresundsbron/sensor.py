@@ -35,9 +35,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         QueueTimeSensor(api, "towardsDenmark", "queue_time_denmark"),
         WebcamCamera(api, "pyloneast", "webcam_pyloneast"),
         WebcamCamera(api, "pylonwest", "webcam_pylonwest"),
-        BridgeWeatherSensor(api, "bridge_weather_temperature", "temperature"),
-        BridgeWeatherSensor(api, "bridge_weather_windspeed", "windspeed"),
-        BridgeWeatherSensor(api, "bridge_weather_direction", "direction"),
+        BridgeWeatherSensor(api, "temperature", "temperature"),
+        BridgeWeatherSensor(api, "windspeed", "windspeed"),
+        BridgeWeatherSensor(api, "direction", "direction"),
     ])
 
     async_add_entities(entities)
@@ -76,7 +76,7 @@ class AgreementStatusSensor(Entity):
             "manufacturer": "Øresundsbron",
             "model": self.contract.get("contractType"),
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/account/login",
+            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
         }
 
     async def async_update(self):
@@ -121,7 +121,7 @@ class AgreementDeviceLatestTripSensor(Entity):
             "manufacturer": "Øresundsbron",
             "model": self.contract.get("contractType"),
             "entry_type": None,
-            "configuration_url": "https://www.oresundsbron.com/account/login",
+            "configuration_url": "https://www.oresundsbron.com/en/traffic-information",
         }
 
     async def async_update(self):
@@ -176,7 +176,6 @@ class BridgeStatusSensor(Entity):
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
             "manufacturer": "Øresundsbron",
-            "model": "Bridge API",
             "entry_type": None,
             "configuration_url": "https://www.oresundsbron.com/account/login",
         }
@@ -221,7 +220,6 @@ class QueueTimeSensor(Entity):
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
             "manufacturer": "Øresundsbron",
-            "model": "Bridge API",
             "entry_type": None,
             "configuration_url": "https://www.oresundsbron.com/account/login",
         }
@@ -263,7 +261,6 @@ class WebcamCamera(Camera):
             "identifiers": {(DOMAIN, "bridge_device")},
             "name": "The Bridge",
             "manufacturer": "Øresundsbron",
-            "model": "Bridge API",
             "entry_type": None,
             "configuration_url": "https://www.oresundsbron.com/account/login",
         }
@@ -285,10 +282,59 @@ class BridgeWeatherSensor(Entity):
         self.sensor_type = sensor_type
 
     @property
+    def unique_id(self):
+        return self._unique_id
+
+    @property
+    def name(self):
+        if self.sensor_type == "temperature":
+            return "Temperature"
+        elif self.sensor_type == "windspeed":
+            return "Wind Speed"
+        elif self.sensor_type == "direction":
+            return "Wind Direction"
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def icon(self):
+        if self.sensor_type == "temperature":
+            return "mdi:thermometer"
+        elif self.sensor_type == "windspeed":
+            return "mdi:weather-windy"
+        elif self.sensor_type == "direction":
+            return "mdi:compass"
+
+    @property
+    def extra_state_attributes(self):
+        return self._attributes
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, "bridge_device")},
+            "name": "The Bridge",
+            "manufacturer": "Øresundsbron",
+            "model": "Bridge API",
+            "entry_type": None,
+            "configuration_url": "https://www.oresundsbron.com/account/login",
+        }
+
+    @property
     def unit_of_measurement(self):
         if self.sensor_type == "temperature":
             return "°C"
         elif self.sensor_type == "windspeed":
             return "m/s"
+
+    async def async_update(self):
+        """Fetch bridge weather conditions."""
+        data = await self.api.async_make_request("/api/content/v1/bridge-status/weather")
+        if self.sensor_type == "temperature":
+            self._state = data.get("temperature")
+        elif self.sensor_type == "windspeed":
+            self._state = data.get("windspeed")
         elif self.sensor_type == "direction":
-            return None
+            self._state = data.get("direction")
