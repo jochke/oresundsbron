@@ -35,6 +35,15 @@ class OresundsbronAPI:
         _LOGGER.debug("Generated X-Azure-Api-Secret: %s", generated_secret)
         return generated_secret
 
+    def log_request_response(self, url, method, headers, body, response):
+        """Log request and response details for debugging."""
+        _LOGGER.error("REQUEST URL: %s", url)
+        _LOGGER.error("REQUEST METHOD: %s", method)
+        _LOGGER.error("REQUEST HEADERS: %s", headers)
+        _LOGGER.error("REQUEST BODY: %s", body)
+        _LOGGER.error("RESPONSE STATUS CODE: %s", response.status_code)
+        _LOGGER.error("RESPONSE BODY: %s", response.text)
+
     def authenticate(self, credentials):
         """Authenticate with the API and retrieve tokens."""
         url = f"{self.base_url}/api/auth/v1/login"
@@ -44,14 +53,8 @@ class OresundsbronAPI:
         try:
             response = requests.post(url, json=credentials, headers=headers)
 
-            # Debug logs for request details
-            _LOGGER.debug("Authentication request URL: %s", url)
-            _LOGGER.debug("Authentication request headers: %s", headers)
-            _LOGGER.debug("Authentication request body: %s", credentials)
-
-            # Debug logs for response details
-            _LOGGER.debug("Authentication response status: %s", response.status_code)
-            _LOGGER.debug("Authentication response body: %s", response.text)
+            # Log both request and response
+            self.log_request_response(url, "POST", headers, credentials, response)
 
             if response.status_code == 200:
                 data = response.json()
@@ -84,15 +87,8 @@ class OresundsbronAPI:
         try:
             response = requests.request(method, url, headers=headers, params=params)
 
-            # Debug logs for request details
-            _LOGGER.debug("Request URL: %s", url)
-            _LOGGER.debug("Request headers: %s", headers)
-            _LOGGER.debug("Request method: %s", method)
-            _LOGGER.debug("Request params: %s", params)
-
-            # Debug logs for response details
-            _LOGGER.debug("Response status: %s", response.status_code)
-            _LOGGER.debug("Response body: %s", response.text)
+            # Log both request and response
+            self.log_request_response(url, method, headers, params, response)
 
             if response.status_code == 401:
                 _LOGGER.error("Unauthorized request: %s", response.text)
