@@ -1,6 +1,4 @@
 # api.py
-import random
-import string
 import requests
 import logging
 
@@ -13,27 +11,7 @@ class OresundsbronAPI:
         self.base_url = "https://www.oresund.io"
         self.token = None
         self.refresh_token = None
-        self.base_secret = "kfqF*MVT6VUX03#wCUkbVgh"  # Base value for X-Azure-Api-Secret
-
-    def generate_secret(self):
-        """Modify the base X-Azure-Api-Secret key dynamically."""
-        characters = string.ascii_letters + string.digits
-        secret_list = list(self.base_secret)
-
-        # Decide whether to modify the first or last 4 characters
-        if random.choice([True, False]):
-            # Modify the first 4 characters
-            for i in range(4):
-                secret_list[i] = random.choice(characters)
-        else:
-            # Modify the last 4 characters
-            for i in range(4):
-                secret_list[-(i + 1)] = random.choice(characters)
-
-        # Return the modified secret
-        generated_secret = ''.join(secret_list)
-        _LOGGER.debug("Generated X-Azure-Api-Secret: %s", generated_secret)
-        return generated_secret
+        self.secret_key = "fqF*MVT6VUX03#wCUkbV"  # Constant value for X-Azure-Api-Secret
 
     def log_request_response(self, url, method, headers, body, response):
         """Log request and response details for debugging."""
@@ -47,7 +25,6 @@ class OresundsbronAPI:
     def authenticate(self, credentials):
         """Authenticate with the API and retrieve tokens."""
         url = f"{self.base_url}/api/auth/v1/login"
-        self.secret_key = self.generate_secret()  # Generate a new secret for each call
         headers = {"X-Azure-Api-Secret": self.secret_key}
 
         try:
@@ -78,7 +55,6 @@ class OresundsbronAPI:
     def make_request(self, endpoint, method="GET", params=None):
         """Make an authenticated request to the API."""
         url = f"{self.base_url}{endpoint}"
-        self.secret_key = self.generate_secret()  # Generate a new secret for each call
         headers = {
             "Authorization": f"Bearer {self.token}",
             "X-Azure-Api-Secret": self.secret_key
