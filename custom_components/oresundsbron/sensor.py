@@ -1,5 +1,6 @@
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.camera import Camera
+from homeassistant.helpers.entity import DeviceInfo
 from .api import OresundsbronAPI
 from .const import DOMAIN
 import logging
@@ -14,23 +15,28 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     await hass.async_add_executor_job(api.authenticate, config_entry.data)
 
     entities = [
-        BridgeStatusSensor(api),
-        QueueTimeSensor(api, direction="towardsSweden"),
-        QueueTimeSensor(api, direction="towardsDenmark"),
-        WebcamCamera(api, "pyloneast"),
-        WebcamCamera(api, "pylonwest"),
-        AccountHiddenSensor(api, "customerNo"),
-        AccountHiddenSensor(api, "contracts"),
-        LastTripSensor(api)
+        BridgeStatusSensor(api, "bridge_status"),
+        QueueTimeSensor(api, "towardsSweden", "queue_time_sweden"),
+        QueueTimeSensor(api, "towardsDenmark", "queue_time_denmark"),
+        WebcamCamera(api, "pyloneast", "webcam_pyloneast"),
+        WebcamCamera(api, "pylonwest", "webcam_pylonwest"),
+        AccountHiddenSensor(api, "customerNo", "account_customer_no"),
+        AccountHiddenSensor(api, "contracts", "account_contracts"),
+        LastTripSensor(api, "last_trip")
     ]
     async_add_entities(entities)
 
 class BridgeStatusSensor(Entity):
     """Sensor for the bridge status."""
 
-    def __init__(self, api):
+    def __init__(self, api, unique_id):
         self.api = api
         self._state = None
+        self._unique_id = unique_id
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
     @property
     def name(self):
@@ -47,10 +53,15 @@ class BridgeStatusSensor(Entity):
 class QueueTimeSensor(Entity):
     """Sensor for the queue times."""
 
-    def __init__(self, api, direction):
+    def __init__(self, api, direction, unique_id):
         self.api = api
         self.direction = direction
         self._state = None
+        self._unique_id = unique_id
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
     @property
     def name(self):
@@ -71,11 +82,16 @@ class QueueTimeSensor(Entity):
 class WebcamCamera(Camera):
     """Camera for the webcam images."""
 
-    def __init__(self, api, cam_id):
+    def __init__(self, api, cam_id, unique_id):
         super().__init__()
         self.api = api
         self.cam_id = cam_id
+        self._unique_id = unique_id
         self._image_url = f"https://cams.oresundsbron.com/{self.cam_id}"
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
     @property
     def name(self):
@@ -95,10 +111,15 @@ class WebcamCamera(Camera):
 class AccountHiddenSensor(Entity):
     """Hidden sensors for account information."""
 
-    def __init__(self, api, sensor_type):
+    def __init__(self, api, sensor_type, unique_id):
         self.api = api
         self.sensor_type = sensor_type
         self._state = None
+        self._unique_id = unique_id
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
     @property
     def name(self):
@@ -118,10 +139,15 @@ class AccountHiddenSensor(Entity):
 class LastTripSensor(Entity):
     """Sensor for the last trip details."""
 
-    def __init__(self, api):
+    def __init__(self, api, unique_id):
         self.api = api
         self._state = None
         self._attributes = {}
+        self._unique_id = unique_id
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
     @property
     def name(self):
