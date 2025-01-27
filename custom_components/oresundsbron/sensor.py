@@ -150,6 +150,7 @@ class BridgeStatusSensor(Entity):
     def __init__(self, api, unique_id):
         self.api = api
         self._state = None
+        self._attributes = {}
         self._unique_id = unique_id
 
     @property
@@ -163,6 +164,10 @@ class BridgeStatusSensor(Entity):
     @property
     def state(self):
         return self._state
+
+    @property
+    def extra_state_attributes(self):
+        return self._attributes
 
     @property
     def icon(self):
@@ -180,9 +185,17 @@ class BridgeStatusSensor(Entity):
         }
 
     async def async_update(self):
-        """Fetch bridge status."""
+        """Fetch bridge status and additional details."""
+        # Fetch the main bridge status
         data = await self.api.async_make_request("/api/content/v1/bridge-status/status")
         self._state = data.get("status")
+
+        # Fetch additional details
+        details = await self.api.async_make_request("/api/content/v1/bridge-status/status-details")
+        self._attributes = {
+            "status_details": details.get("info", []),
+        }
+
 
 class QueueTimeSensor(Entity):
     """Sensor for the queue times."""
